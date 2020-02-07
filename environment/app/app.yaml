@@ -1,0 +1,33 @@
+---
+- hosts: appservers
+  become: true
+
+  tasks:
+  - name: Update and upgrade apt packages
+    become: true
+    apt:
+      upgrade: yes
+      update_cache: yes
+
+  - name: install nginx
+    apt: name=nginx state=present
+
+  - name: install git
+    apt: name=git state=present
+
+  - name: install python-software-properties
+    apt: name=python-software-properties state=present
+
+  - name: using curl to run bash command to install nodesource repo
+    shell: curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+
+  - name: Install NodeJS
+    become: yes
+    apt:
+      name: nodejs
+      state: present
+
+  - name: install pm2
+    npm:
+      name: pm2
+      global: yes

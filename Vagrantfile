@@ -30,6 +30,7 @@ Vagrant.configure("2") do |config|
     acs.vm.hostname = "acs"
     acs.vm.network "private_network", ip: "192.168.10.130"
     acs.vm.provision "shell", path: "environment/provision.sh", privileged: false
+    acs.vm.synced_folder "environment", "/home/ubuntu/environment"
 
   end
 
@@ -41,6 +42,11 @@ Vagrant.configure("2") do |config|
     app.vm.synced_folder "app", "/home/ubuntu/app"
     # app.vm.provision "shell", path: "environment/app/provision.sh", privileged: false
     app.vm.provision "shell", inline: set_env({DB_HOST: "mongodb://192.168.10.150:27017/posts"}), privileged: false
+
+    # app.vm.provision "ansible" do |ansible|
+    #   ansible.verbose = true
+    #   ansible.playbook = "environment/app/app.yaml"
+    # end
   end
 
   config.vm.define "db" do |db|
@@ -50,6 +56,11 @@ Vagrant.configure("2") do |config|
     db.hostsupdater.aliases = ["database.local"]
     # db.vm.provision "shell", path: "environment/db/provision.sh", privileged: false
     db.vm.synced_folder "environment/db", "/home/ubuntu/environment"
+
+    # db.vm.provision "ansible" do |ansible|
+    #   ansible.verbose = true
+    #   ansible.playbook = "environment/db/db.yaml"
+    # end
   end
 
 end

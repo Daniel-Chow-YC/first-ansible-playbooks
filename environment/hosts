@@ -1,0 +1,7 @@
+app ansible_ssh_host=192.168.10.100 ansible_ssh_user=vagrant ansible_ssh_pass=vagrant
+db ansible_ssh_host=192.168.10.150 ansible_ssh_user=vagrant ansible_ssh_pass=vagrant
+
+[appservers]
+app
+[dbservers]
+db

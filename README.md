@@ -73,7 +73,6 @@ In this yaml file paste:
     apt:
       name: nodejs
       state: present
-      update_cache: yes
 
   - name: install pm2
     npm:
@@ -140,18 +139,26 @@ Create a playbook for the db
 
   - name: Import the public key used by the package management system
     apt_key: keyserver=hkp://keyserver.ubuntu.com:80 id=7F0CEB10 state=present
+
   - name: Add MongoDB repository
     apt_repository: repo='deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse' state=present
+
   - name: super-ugly hack to allow unauthenticated packages to install
     copy: content='APT::Get::AllowUnauthenticated "true";' dest=/etc/apt/apt.conf.d/99temp owner=root group=root mode=0644
+
   - name: install mongodb
-    apt: pkg=mongodb-org state=latest update_cache=yes
+    apt: name=mongodb-org state=present
     notify:
     - start mongodb
+
+  - name: remove hack that allows unauthenticated packages to install
+    file: path=/etc/apt/apt.conf.d/99temp state=absent
+
   - name: Remove mongod.conf file (delete file)
     file:
       path: /etc/mongod.conf
       state: absent
+
   - name: Create a symbolic link
     file:
       src: /home/ubuntu/environment/mongod.conf
@@ -159,15 +166,29 @@ Create a playbook for the db
       state: link
     notify:
     - restart mongodb
-  - name: enable service mongod
-    systemd:
-      name: mongod
-      enabled: yes
+    - enable mongodb
+
+  #- name: restart mongodb
+  #  systemd:
+  #    name: mongod
+  #    state: reloaded
+
+  #- name: enable service mongod
+  #  systemd:
+  #    name: mongod.service
+  #    enabled: yes
+  #    masked: no
 
   handlers:
     - name: start mongodb
       service: name=mongod state=started
+
     - name: restart mongodb
       service: name=mongod state=restarted
+
+    - name: enable mongodb
+      service: name=mongod enabled=yes
+
+
 ````
 To run the playbooks: ``ansible-playbook app.yaml `` and ``ansible-playbook db.yaml``

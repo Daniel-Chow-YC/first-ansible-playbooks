@@ -1,0 +1,88 @@
+---
+- hosts: dbservers
+  become: true
+
+  tasks:
+
+  # - name: Import the public key used by the package management system
+  #   apt_key: keyserver=hkp://keyserver.ubuntu.com:80 id=7F0CEB10 state=present
+  #
+  # - name: Add MongoDB repository
+  #   apt_repository: repo='deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse' state=present
+
+  - name: Import the public key used by the package management system
+    shell: wget -qO - https://www.mongodb.org/static/pgp/server-3.2.asc | sudo apt-key add -
+
+  - name: add mongodb repository
+    shell: echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+
+  # - name: super-ugly hack to allow unauthenticated packages to install
+  #   copy: content='APT::Get::AllowUnauthenticated "true";' dest=/etc/apt/apt.conf.d/99temp owner=root group=root mode=0644
+
+  # - name: install mongodb
+  #   apt: name=mongodb-org state=present
+  #   notify:
+  #   - start mongodb
+
+  # - name: Update packages
+  #   become: true
+  #   apt: upgrade=yes
+
+  - name: Update Packages
+    shell: sudo apt-get update
+
+  - name: install mongodb
+    shell: sudo apt-get install -y mongodb-org=3.2.20 mongodb-org-server=3.2.20 mongodb-org-shell=3.2.20 mongodb-org-mongos=3.2.20 mongodb-org-tools=3.2.20
+    # notify: start mongodb
+
+  # - name: remove hack that allows unauthenticated packages to install
+  #   file: path=/etc/apt/apt.conf.d/99temp state=absent
+
+  # - name: Remove mongod.conf file (delete file)
+  #   file:
+  #     path: /etc/mongod.conf
+  #     state: absent
+
+  - name: Remove mongod.conf file (delete file)
+    shell: sudo rm /etc/mongod.conf
+
+  # - name: Create a symbolic link
+  #   file:
+  #     src: /home/ubuntu/environment/mongod.conf
+  #     dest: /etc/mongod.conf
+  #     state: link
+
+  - name: Create a symbolic link
+    shell: sudo ln -s /home/ubuntu/environment/mongod.conf /etc/mongod.conf
+
+
+    # notify:
+    # - restart mongodb
+    # - enable mongodb
+
+  #- name: restart mongodb
+  #  systemd:
+  #    name: mongod
+  #    state: reloaded
+
+  #- name: enable service mongod
+  #  systemd:
+  #    name: mongod.service
+  #    enabled: yes
+  #    masked: no
+
+  - name: restart mongod
+    shell: sudo systemctl restart mongod
+
+  - name: enable mongod
+    shell: sudo systemctl enable mongod.service
+
+  # handlers:
+  #   - name: start mongodb
+  #     service: name=mongod state=started
+  #
+  #   - name: restart mongodb
+  #     service: name=mongod state=restarted
+  #
+  #   - name: enable mongodb
+  #     service: name=mongod enabled=yes
